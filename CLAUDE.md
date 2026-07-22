@@ -120,6 +120,22 @@ npm run badge:coverage  # regenerates badges/coverage.svg from them
 regenerated badge back to the repo if the percentage changed — the README badge always
 reflects the latest run, no manual updates needed.
 
+## Agent Teams pipeline
+
+For every implementation task in this repo (new feature, bug fix, refactor — anything that changes `server/src/` or `client/src/`), Claude Code must run the task through this four-agent pipeline rather than implementing directly. The agent definitions live in `.claude/agents/`.
+
+1. **`researcher`** (opus) — Analyzes the requirement, researches best practices and existing conventions, and produces a detailed implementation plan. Never writes or edits code. Run this first and get its plan before doing anything else.
+2. **`implementer`** (sonnet) — Implements the plan step by step: clean, secure, tested code matching project conventions. Also the target of the Validator's defect reports in step 3.
+3. **`validator`** (opus) — Reviews the implementation for correctness, security, performance, and clean code, and checks test coverage is >= 80%. If it finds defects, send them back to `implementer` and re-run `validator` on the fix. Repeat until `validator` explicitly reports all criteria passing — do not proceed on a partial pass.
+4. **`finalizer`** (haiku) — Only invoked after `validator` reports a full pass. Commits and pushes the change with a Conventional Commits message. **No user confirmation is required for this commit/push** — that authorization is granted in advance by this pipeline definition, scoped strictly to changes that already passed the `validator` stage.
+
+Rules for running the pipeline:
+
+- Skip the pipeline for pure research/explanation requests, one-line trivial edits (typo fixes, comment changes), and non-code changes (docs, README, this file) — use judgment, but default to running it for anything touching `server/src/` or `client/src/` behavior.
+- Each stage runs as its own agent via the Agent tool (`subagent_type` matching the file name in `.claude/agents/`) so its context stays isolated from the others.
+- Do not let `implementer` skip straight to `finalizer` — every change must pass through `validator` at least once, and every defect `validator` raises must go back through `implementer`, not be fixed inline by the orchestrator.
+- If `validator` and `implementer` disagree after a couple of rounds and aren't converging, stop the loop and surface the disagreement to the user instead of forcing a pass.
+
 ## Key library notes
 
 - `webdav` (client) is ESM-only as of v5 — this is why `server/package.json` has `"type": "module"`.
