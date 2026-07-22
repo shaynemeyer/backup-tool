@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+*.log
+.DS_Store
+
+server/.env
+.claude/scheduled_tasks.lock
+.env
+client/.env

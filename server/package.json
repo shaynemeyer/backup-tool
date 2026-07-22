@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "webdav": "^5.10.0"
+  },
+  "devDependencies": {
+    "@nephele/adapter-file-system": "^1.0.0-alpha.67",
+    "@nephele/authenticator-custom": "^1.0.0-alpha.67",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.1",
+    "nephele": "^1.0.0-alpha.67",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  }
+}
