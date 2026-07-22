@@ -68,7 +68,7 @@ Open `http://localhost:5173`. Press Ctrl+C to stop everything.
 cd server
 npm install
 cp .env.example .env   # fill in your WebDAV credentials
-npm run dev             # http://localhost:3001
+npm run dev               # http://localhost:3001
 ```
 
 ```bash
@@ -99,6 +99,20 @@ WEBDAV_USERNAME=demo
 WEBDAV_PASSWORD=demo
 ```
 
+## Testing
+
+Both `server/` and `client/` use Vitest. Run everything from the repo root:
+
+```bash
+npm install         # installs root dev tooling (Husky, coverage badge script)
+npm test            # runs server tests, then client tests
+npm run test:coverage
+```
+
+Tests run automatically before every commit via a Husky pre-commit hook — a commit is blocked if either suite fails.
+
+The coverage badge above is generated from the combined line coverage of both suites and committed automatically by [`.github/workflows/coverage-badge.yml`](.github/workflows/coverage-badge.yml) on every push to `main`; you can regenerate it locally with `npm run badge:coverage` after running `npm run test:coverage`.
+
 ## Project layout
 
 | Path | What |
@@ -106,9 +120,11 @@ WEBDAV_PASSWORD=demo
 | [`server/`](server/README.md) | Express + TypeScript API — filesystem browsing and WebDAV upload |
 | [`client/`](client/README.md) | React + TypeScript UI — Vite, Tailwind CSS v4, shadcn/ui |
 | `server/webdav-test-server/` | Local WebDAV server for dev/demo use, no account required |
+| `scripts/`, `badges/` | Coverage badge generation, used by the CI workflow above |
+| `docs/` | Standalone notes (e.g. security review findings) not tied to a specific module |
 
 See [`CLAUDE.md`](CLAUDE.md) for architecture notes and conventions if you're working on this with an AI coding agent.
 
 ## Status
 
-This is a demo project — minimal setup, no auth on the app itself, and directory browsing is scoped to your home directory as a basic safety boundary. Not intended for production use as-is.
+This is a demo project — minimal setup, no auth on the app itself, and both directory browsing and backup are scoped to your home directory (`server/src/pathGuard.ts`) as a basic safety boundary. Not intended for production use as-is.
