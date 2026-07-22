@@ -6,9 +6,11 @@
   "scripts": {
     "test": "npm test --prefix server && npm test --prefix client",
     "test:coverage": "npm run test:coverage --prefix server && npm run test:coverage --prefix client",
+    "badge:coverage": "node scripts/generate-coverage-badge.mjs",
     "prepare": "husky"
   },
   "devDependencies": {
+    "badge-maker": "^6.0.0",
     "husky": "^9.1.7"
   }
 }

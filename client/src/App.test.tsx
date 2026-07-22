@@ -84,6 +84,14 @@ describe("App", () => {
     expect(await screen.findByText("Failed to load directory (500)")).toBeInTheDocument();
   });
 
+  it("falls back to a generic message when the initial browse request throws a non-Error value", async () => {
+    vi.mocked(fetch).mockRejectedValueOnce("network down");
+
+    render(<App />);
+
+    expect(await screen.findByText("Failed to load directory")).toBeInTheDocument();
+  });
+
   it("runs a backup and shows the result on success", async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(browseRoot));
@@ -119,6 +127,19 @@ describe("App", () => {
     await user.click(screen.getByText("Back up this folder"));
 
     expect(await screen.findByText("Backup failed (500)")).toBeInTheDocument();
+  });
+
+  it("falls back to a generic message when the backup request throws a non-Error value", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(browseRoot));
+    render(<App />);
+    await screen.findByText("/home/user");
+
+    vi.mocked(fetch).mockRejectedValueOnce("network down");
+
+    await user.click(screen.getByText("Back up this folder"));
+
+    expect(await screen.findByText("Backup failed")).toBeInTheDocument();
   });
 
   it("disables the backup button while a backup is running", async () => {

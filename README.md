@@ -11,6 +11,7 @@ Browse your filesystem in the browser, pick a folder, click one button, and its 
   <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white">
   <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white">
   <img alt="shadcn/ui" src="https://img.shields.io/badge/shadcn%2Fui-black?style=flat-square">
+  <img alt="Coverage" src="./badges/coverage.svg">
 </p>
 
 ## How it works
