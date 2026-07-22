@@ -41,12 +41,11 @@ stateDiagram-v2
     direction LR
     [*] --> Browsing: load home dir
 
-    Browsing --> Browsing: navigate\n(GET /api/browse)
     Browsing --> Uploading: back up
     Browsing --> Error: browse fails
 
     Uploading --> Browsing: done
-    Error --> Browsing: navigate again
+    Error --> Browsing: retry
 ```
 
 ## Quick start
