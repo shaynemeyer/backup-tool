@@ -1,0 +1,14 @@
+{
+  "name": "backup-tool",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Repo-root scripts for running tests across server/ and client/, and the Husky pre-commit hook that runs them automatically.",
+  "scripts": {
+    "test": "npm test --prefix server && npm test --prefix client",
+    "test:coverage": "npm run test:coverage --prefix server && npm run test:coverage --prefix client",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

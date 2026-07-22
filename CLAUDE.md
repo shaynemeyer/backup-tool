@@ -9,25 +9,31 @@ A small demo web app for backing up local directories to a WebDAV server. Two in
 - `server/` — Express 5 (TypeScript, ESM) API. Lists local directories and uploads their contents to WebDAV.
 - `client/` — Vite + React + TypeScript UI, styled with Tailwind CSS v4 and shadcn/ui components.
 
-There is no root-level package.json — each side is installed and run independently.
+Each side is installed and run independently. A root-level `package.json` exists only to host the Husky pre-commit hook and a `test` convenience script — it is not a workspace root and has no runtime dependencies.
 
 ## Commands
 
 Backend (run from `server/`):
 
 ```bash
-npm run dev     # tsx watch src/index.ts — dev server on :3001
-npm run build   # tsc -> dist/
-npm run start   # node dist/index.js
-npx tsc --noEmit  # type-check only
+npm run dev            # tsx watch src/index.ts — dev server on :3001
+npm run build          # tsc -> dist/
+npm run start          # node dist/index.js
+npx tsc --noEmit       # type-check only
+npm test               # vitest run — unit tests, single run
+npm run test:watch     # vitest — watch mode
+npm run test:coverage  # vitest run --coverage — text + HTML report in server/coverage/
 ```
 
 Frontend (run from `client/`):
 
 ```bash
-npm run dev     # vite dev server on :5173, proxies /api -> localhost:3001 (see vite.config.ts)
-npm run build   # tsc -b && vite build
-npx tsc --noEmit -p tsconfig.app.json  # type-check only
+npm run dev                              # vite dev server on :5173, proxies /api -> localhost:3001 (see vite.config.ts)
+npm run build                            # tsc -b && vite build
+npx tsc --noEmit -p tsconfig.app.json    # type-check only
+npm test                                 # vitest run — unit tests, single run
+npm run test:watch                       # vitest — watch mode
+npm run test:coverage                    # vitest run --coverage — text + HTML report in client/coverage/
 ```
 
 Local WebDAV test server (run from `server/`, for development — not part of the app):
@@ -44,8 +50,9 @@ Serves `server/webdav-test-server/storage/` over WebDAV on `http://localhost:190
 
 - `index.ts` — Express app entry point; wires up routes and loads `.env` via `dotenv/config` (must be the first import — `webdavClient.ts` reads env vars at module-load time and throws if `WEBDAV_URL` is unset).
 - `browse.ts` — `GET /api/browse?path=<dir>` — lists subdirectories of a given path. Restricted to the user's home directory (`os.homedir()`) as a safety boundary; rejects paths outside it with 400.
-- `backup.ts` — `POST /api/backup` with `{ path }` — recursively reads the given local directory (`fs.promises.readdir` with `recursive: true, withFileTypes: true`) and mirrors it to WebDAV under `/backup-tool/<basename>`, creating remote directories as needed before uploading files. No path restriction (unlike `browse.ts`).
+- `backup.ts` — `POST /api/backup` with `{ path }` — recursively reads the given local directory (`fs.promises.readdir` with `recursive: true, withFileTypes: true`) and mirrors it to WebDAV under `/backup-tool/<basename>`, creating remote directories as needed before uploading files. Restricted to the user's home directory via the same `pathGuard.ts` check as `browse.ts`.
 - `webdavClient.ts` — creates the shared `webdav` client from `WEBDAV_URL`/`WEBDAV_USERNAME`/`WEBDAV_PASSWORD` env vars.
+- `pathGuard.ts` — shared `ROOT`/`isInsideRoot()` boundary check used by both `browse.ts` and `backup.ts` to keep filesystem access inside `os.homedir()`.
 
 Module resolution is `NodeNext`, so relative imports use `.js` extensions in source (e.g. `import { browseHandler } from "./browse.js"`) even though the files are `.ts` — this is required by NodeNext/ESM, not a mistake.
 
@@ -66,6 +73,35 @@ WEBDAV_USERNAME=...
 WEBDAV_PASSWORD=...
 PORT=3001
 ```
+
+## Testing
+
+Both `server/` and `client/` use Vitest with `@vitest/coverage-v8`. Tests live next to
+the source file they cover (`foo.ts` -> `foo.test.ts`).
+
+- `server/` — plain Vitest, `environment: "node"` (see `server/vitest.config.ts`).
+  `fs`/`fs/promises` and `webdavClient.ts` are mocked with `vi.mock` so tests never touch
+  the real filesystem or a live WebDAV server. Coverage excludes `src/index.ts` (just
+  route wiring).
+- `client/` — Vitest + React Testing Library, `environment: "jsdom"` (see
+  `client/vitest.config.ts`). `global.fetch` is stubbed per test with `vi.stubGlobal`.
+  Coverage excludes `src/main.tsx` (bootstrap) and `src/components/ui/**` (shadcn-generated,
+  never hand-edited — see project conventions).
+
+Run everything from the repo root:
+
+```bash
+npm test            # runs server tests, then client tests
+npm run test:coverage
+```
+
+**Tests run automatically before every commit** via a Husky pre-commit hook
+(`.husky/pre-commit` -> `npm test` at the repo root). A commit is blocked if either
+suite fails. The root `package.json`'s `prepare` script installs the hook on `npm install`.
+
+When adding or changing behavior in `server/src/` or `client/src/`, add or update the
+matching `*.test.ts`/`*.test.tsx` file in the same change — don't rely on the pre-commit
+hook to be the first time tests are run.
 
 ## Key library notes
 
